@@ -26,8 +26,9 @@ const run = async () => {
 
     // get user
     app.get('/user', async (req, res) => {
+      const limit = parseInt(req.query.limit)
       const query = {}
-      const products = await user.find(query).toArray()
+      const products = await user.find(query).limit(limit).toArray()
       res.send(products)
     })
 
@@ -69,10 +70,34 @@ const run = async () => {
       res.send(result)
     })
 
+    // update user add friends
+    app.patch('/user-add-friends', async (req, res) => {
+      const id = req.query.id
+      const filter = { _id: ObjectId(id) }
+      const body = req.body
+      console.log(id)
+      console.log(body)
+      const options = { upsert: true }
+      const updateDoc = {
+        $set: {
+          friends: {
+            requested: body,
+          },
+        },
+      }
+      const result = await user.updateOne(filter, updateDoc, options)
+      res.send(result)
+    })
+
     // get post
     app.get('/post', async (req, res) => {
       const query = {}
-      const result = await post.find(query).sort({ post_time: -1 }).toArray()
+      const load_more = parseInt(req.query.load_more)
+      const result = await post
+        .find(query)
+        .sort({ post_time: -1 })
+        .limit(load_more)
+        .toArray()
       res.send(result)
     })
 
@@ -92,6 +117,18 @@ const run = async () => {
       const id = req.query.id
       const query = { _id: ObjectId(id) }
       const result = await post.find(query).toArray()
+      res.send(result)
+    })
+    // get post by post id
+    app.get('/post-by-u_id', async (req, res) => {
+      const id = req.query.id
+      const load_more = parseInt(req.query.load_more)
+      const query = { user_id: id }
+      const result = await post
+        .find(query)
+        .limit(load_more)
+        .sort({ post_time: -1 })
+        .toArray()
       res.send(result)
     })
     // create post
@@ -122,7 +159,10 @@ const run = async () => {
     app.get('/comment', async (req, res) => {
       const id = req.query._id
       const query = { post_id: id }
-      const result = await comment.find(query).toArray()
+      const result = await comment
+        .find(query)
+        .sort({ create_time: -1 })
+        .toArray()
       res.send(result)
     })
 
