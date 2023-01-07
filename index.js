@@ -23,6 +23,7 @@ const run = async () => {
     const user = database.collection('user')
     const post = database.collection('post')
     const comment = database.collection('comment')
+    const myDay = database.collection('myday')
 
     // get user
     app.get('/user', async (req, res) => {
@@ -37,6 +38,16 @@ const run = async () => {
       const qry = req.query
       const query = {
         email: qry.email,
+      }
+      const result = await user.findOne(query)
+      res.send(result)
+    })
+
+    // get single user by id
+    app.get('/user-get-by-id', async (req, res) => {
+      const id = req.query.id
+      const query = {
+        _id: ObjectId(id),
       }
       const result = await user.findOne(query)
       res.send(result)
@@ -75,17 +86,18 @@ const run = async () => {
       const id = req.query.id
       const filter = { _id: ObjectId(id) }
       const body = req.body
-      console.log(id)
-      console.log(body)
-      const options = { upsert: true }
-      const updateDoc = {
-        $set: {
-          friends: {
-            requested: body,
-          },
-        },
-      }
-      const result = await user.updateOne(filter, updateDoc, options)
+      // const friends = new Document().append('friends', body)
+      const result = await user.find({ _id: ObjectId(id) }).insertOne(body)
+      console.log(result)
+      // const options = { upsert: true }
+      // const updateDoc = {
+      //   $set: {
+      //     friends: {
+      //       requested: [body],
+      //     },
+      //   },
+      // }
+      // const result = await user.updateMany(filter, updateDoc, options)
       res.send(result)
     })
 
@@ -170,6 +182,19 @@ const run = async () => {
     app.post('/comment', async (req, res) => {
       const body = req.body
       const result = await comment.insertOne(body)
+      res.send(result)
+    })
+    // get my day
+    app.get('/my-day', async (req, res) => {
+      const query = {}
+      const result = await myDay.find(query).toArray()
+      res.send(result)
+    })
+
+    // add my day
+    app.post('/my-day', async (req, res) => {
+      const data = req.body
+      const result = await myDay.insertOne(data)
       res.send(result)
     })
   } finally {
