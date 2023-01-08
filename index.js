@@ -187,7 +187,11 @@ const run = async () => {
     // get my day
     app.get('/my-day', async (req, res) => {
       const query = {}
-      const result = await myDay.find(query).toArray()
+
+      const result = await myDay
+        .find(query)
+        .sort({ milliseconds: -1 })
+        .toArray()
       res.send(result)
     })
 
